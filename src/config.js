@@ -1,0 +1,1 @@
+export const CHAT_API_URL = 'https://staging3.booostr.co/wp-json/chat-api/v1';
