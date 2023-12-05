@@ -92,7 +92,7 @@ const LoginScreen = ({ navigation }) => {
             />
             {loading ? (
               <View style={styles.loader}>
-                <ActivityIndicator size="medium" color="#00c0ff" />
+                <ActivityIndicator color="#00c0ff" />
               </View>
             ) : (
               <PaperButton

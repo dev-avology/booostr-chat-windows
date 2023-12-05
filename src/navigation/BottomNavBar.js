@@ -9,7 +9,9 @@ import {
   StatusBar,
   Dimensions,
 } from "react-native";
-//import { AntDesign, FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import FontAwesome from "react-native-vector-icons/FontAwesome6Pro";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import {
   useNavigation,
   useIsFocused,
@@ -102,11 +104,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
           ]}
           onPress={handleClub}
         >
-          {/*<FontAwesome
+          <FontAwesome
             name="comment"
             size={24}
             color={activeItem === "ClubList" ? "#00c0ff" : "#000"}
-        />*/}
+        />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -114,12 +116,12 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
             activeItem === "Search" && styles.activeNavItem,
           ]}
         >
-          {/*<FontAwesome
+          <FontAwesome
             name="search"
             size={24}
             color={activeItem === "Search" ? "#00c0ff" : "#000"}
             onPress={toggleSearchBar}
-        />*/}
+        />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -135,11 +137,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
             }
           }}
         >
-          {/*<AntDesign
+          <AntDesign
             name="plus"
             size={24}
             color={activeItem === "AddContact" ? "#00c0ff" : "#fff"}
-        />*/}
+        />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -148,11 +150,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
           ]}
           onPress={handleSetting}
         >
-          {/*<MaterialIcons
+          <MaterialIcons
             name="settings"
             size={24}
             color={activeItem === "SettingsPage" ? "#00c0ff" : "#000"}
-        />*/}
+        />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -161,11 +163,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
           ]}
           onPress={handleProfile}
         >
-          {/*<FontAwesome
+          <FontAwesome
             name="user"
             size={24}
             color={activeItem === "UserProfile" ? "#00c0ff" : "#000"}
-        />*/}
+        />
         </TouchableOpacity>
       </View>
       {isSearchBarVisible && (
@@ -189,11 +191,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange 
             const searchTerm = searchInputRef.current.value;
             onSearchTermChange(searchTerm);
           }}>
-            {/*<FontAwesome
+            <FontAwesome
               name="search"
               size={20}
               color={activeItem === "Search" ? "#00c0ff" : "#000"}
-        />*/}
+        />
           </TouchableOpacity>
         </View>
       )}
@@ -303,21 +305,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#efefef",
     borderRadius: 25,
-    paddingHorizontal: 10,
-    marginTop: 8,
-    marginBottom: 8,
-    marginLeft: 16,
-    marginRight: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 0,
+    marginTop: 10,
+    marginBottom: 10,
+    marginLeft: 20,
+    marginRight: 20,
+    justifyContent: "space-between",
+    borderColor: "#ccc",
+    boxShadow: "0 0 0 2px transparent", // Initial transparent border
+    transition: "border-color 0.3s ease-in-out", // Smooth border color transition on focus
   },
   searchInput: {
     flex: 1,
     height: 40,
-    paddingVertical: 0,
+    paddingHorizontal: 5,
+    paddingVertical: 10,
+    marginVertical: 0,
+    fontSize: 16,
+    color: "#333",
+    borderWidth: 0,
   },
   searchButton: {
-    padding: 8,
+    padding: 10,
   },
   overlay: {
     overflow: "hidden",

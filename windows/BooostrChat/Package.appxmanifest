@@ -33,10 +33,10 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="BooostrChat.App">
       <uap:VisualElements
-        DisplayName="BooostrChat"
+        DisplayName="Booostr Chat"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="BooostrChat"
+        Description="Booostr Team Chat is a local live chat that allows our customers and their volunteer teams to communicate in real time via chat across mobile, tablet and desktop. The system is a private chat designed to help nonprofit volunteers better communicate with each other."
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />

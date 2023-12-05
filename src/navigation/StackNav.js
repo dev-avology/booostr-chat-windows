@@ -16,18 +16,6 @@ import GroupProfile from "../screens/GroupProfile";
 import GroupChatDashboard from "../screens/GroupChatDashboard";
 const Stack = createStackNavigator();
 
-const DashboardScreen = ({ navigation }) => {
-    return (
-        <View style={styles.container}>
-            <Text>Hello, this is the Dashboard screen!</Text>
-            <Button
-                title="Go to Login"
-                onPress={() => navigation.navigate('Login')}
-            />
-        </View>
-    );
-};
-
 const StackNav = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
