@@ -73,7 +73,7 @@ const GroupChatDashboard = () => {
     <ImageBackground style={styles.img_top} source={bgImg} resizeMode="cover">
       <KeyboardAvoidingView style={styles.container} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="#000" style={styles.backIcon} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToGroupProfile}>
@@ -138,15 +138,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: Platform.OS == 'ios' ? 40 : 20,
+    paddingTop: Platform.OS == 'ios' ? 55 : 30,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#efefef',
-    backgroundColor: '#fff',
+    borderBottomColor: "#efefef",
+    backgroundColor: "#f7f7f7",
   },
   backIcon: {
     width: 24,
     height: 24,
+  },
+  backButton: {
+    marginLeft: 10,
   },
   groupImage: {
     width: 50,

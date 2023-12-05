@@ -9,11 +9,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import bgImg from "../assets/chat-bg.png";
+import user1 from "../assets/user1.png";
 import Icon from "react-native-vector-icons/Ionicons";
 import BottomNavBar from "../navigation/BottomNavBar";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../actions/auth";
-import { fetchUserData } from "../reducers/loginReducer";
+import { fetchUserData} from "../reducers/loginReducer";
 import { memoizedSelectUserData } from "../selectors";
 
 const SettingsPage = ({ navigation }) => {
@@ -29,7 +30,7 @@ const SettingsPage = ({ navigation }) => {
       case "online":
         return "#0F0";
       case "offline":
-        return "#F00";
+        return "#777";
       case "away":
         return "gray";
       default:
@@ -63,7 +64,7 @@ const SettingsPage = ({ navigation }) => {
   const handleChangePassword = () => {};
 
   const handleLogout = () => {
-    dispatch(logout()).then((response) => {
+    dispatch(logout(CurrentUserID)).then((response) => {
       if (response.status === "success") {
         navigation.reset({
           index: 0,
@@ -97,10 +98,14 @@ const SettingsPage = ({ navigation }) => {
         {userData && !loading ? (
           <View style={styles.card}>
             <View style={styles.statusContainer}>
-              <Image
-                source={{ uri: userData?.user_photo }}
-                style={styles.userImage}
-              />
+            <Image
+              source={
+                userData?.user_photo
+                  ? { uri: userData?.user_photo }
+                  : user1
+              }
+              style={styles.userImage}
+            />
               {renderStatusIndicator(userData?.status)}
             </View>
             <Text style={styles.userName}>
@@ -179,11 +184,11 @@ const styles = StyleSheet.create({
     left: 0,
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: Platform.OS == "ios" ? 40 : 20,
+    paddingTop: Platform.OS == "ios" ? 55 : 30,
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#efefef",
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
     zIndex: 1,
     width: "100%",
   },
@@ -200,7 +205,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   userStatus: {
-    fontSize: 18,
+    fontSize: 14,
     color: "#777",
     marginTop: 5,
   },

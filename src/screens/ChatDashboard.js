@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
+  Dimensions,
   View,
   Text,
   StyleSheet,
@@ -17,6 +18,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import bgImg from "../assets/chat-bg.png";
 import userPlaceholder from "../assets/user1.png";
+import groupPlaceholder from "../assets/group_icons.png";
 import { useDispatch, useSelector } from "react-redux";
 import { memoizedSelectUserData, memoizeduserMessages } from "../selectors";
 import {
@@ -24,9 +26,15 @@ import {
   autofetchUserMessages,
   sendMessage,
   addMessage,
+  sendFileMessage
 } from "../reducers/chatMessagesSlice";
 //import * as ImagePicker from "expo-image-picker";
 import profileManager from "../assets/pm.png";
+import Lightbox from "react-native-lightbox-v2";
+//import { Video, ResizeMode } from "expo-av";
+
+const WINDOW_WIDTH = Dimensions.get("window").width;
+const BASE_PADDING = 10;
 
 const YOUR_REFRESH_INTERVAL = 5000;
 
@@ -42,6 +50,8 @@ const ChatDashboard = ({ route, navigation }) => {
 
   const conversation = route.params.conversation;
   const AsUser = route.params.AsUser;
+  const toggleState = route.params.toggleState;
+  const club = route.params.club;
   const user = conversation?.participants.find(
     (participant) => participant.user_id != AsUser
   );
@@ -93,6 +103,7 @@ const ChatDashboard = ({ route, navigation }) => {
     return () => backHandler.remove();
   }, []);
 
+  
   const sendMessage1 = () => {
     if (messageText.trim() === "") {
       return;
@@ -124,18 +135,65 @@ const ChatDashboard = ({ route, navigation }) => {
   };
 
   const goToUserProfile = () => {
-    navigation.navigate("UserProfile", { conversation, user });
+    navigation.navigate("UserProfile", {
+      conversation,
+      user,
+      AsUser,
+      toggleState,
+      club,
+    });
   };
 
+  function determineMessageType(type) {
+    if (type) {
+      if (type.startsWith('image')) {
+        return 'image';
+      } else if (type.startsWith('video')) {
+        return 'video';
+      }
+    }
+    return 'file';
+  }
+
   const pickImage = async () => {
+
+    let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      alert('Permission to access media library is required to pick an image.');
+      return;
+    }
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       CameraType: "Back",
-      aspect: [4, 3],
       quality: 0.5,
     });
+    
     if (!result?.canceled) {
+      setIsLoading(true);
+      const newMessage = {
+        content: messageText,
+        sender_id: AsUser,
+        conversation_id: conversation?.id,
+        message_type: determineMessageType(result?.assets[0]?.type),
+        media_url: "",
+        mentioned_user_ids: [],
+      };
+
+    dispatch(sendFileMessage(newMessage, result, recipient_ids))
+      .then((data) => {
+        dispatch(addMessage(data?.data?.data));
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
+        setIsLoading(false);
+      });
+
+    flatlistRef.current.scrollToEnd();
+
     }
   };
 
@@ -144,7 +202,7 @@ const ChatDashboard = ({ route, navigation }) => {
       case "online":
         return "#0F0";
       case "offline":
-        return "#F00";
+        return "#777";
       case "away":
         return "gray";
       default:
@@ -166,10 +224,10 @@ const ChatDashboard = ({ route, navigation }) => {
       <KeyboardAvoidingView
         style={styles.container}
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -466}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Icon
               name="arrow-back"
               size={24}
@@ -192,19 +250,23 @@ const ChatDashboard = ({ route, navigation }) => {
                   style={styles.userImage}
                 />
               ) : (
-                <Image source={userPlaceholder} style={styles.userImage} />
+                
+                <Image source={conversation?.conversation_type == "group"?groupPlaceholder:userPlaceholder} style={styles.userImage} />
               )}
               {renderStatusIndicator(user?.status)}
             </View>
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>
-                {conversation?.conversation_type == "group"
-                  ? conversation?.conversation_name
-                  : user?.first_name + " " + user?.last_name}{" "}
-                {user?.profile_manager ? (
-                  <Image source={profileManager} style={styles.pmImg} />
-                ) : null}
-              </Text>
+               <View>
+                  <Text style={styles.userName}>
+                    {conversation?.conversation_type == "group"
+                      ? conversation?.conversation_name
+                      : user?.first_name + " " + user?.last_name}{" "}
+                    {user?.profile_manager ? (
+                      <Image source={profileManager} style={styles.pmImg} />
+                    ) : null}
+                  </Text>
+                  <Text style={styles.chatType}>{conversation?.conversation_type == "group"? "(Group Chat)": "(Direct Chat)"}</Text>
+              </View>
               {user?.status ? (
                 <Text style={styles.userStatus}>{user?.status}</Text>
               ) : null}
@@ -246,16 +308,57 @@ const ChatDashboard = ({ route, navigation }) => {
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.messageText,
-                        {
-                          color: item.sender_id == AsUser ? "#fff" : "#333",
-                        },
-                      ]}
-                    >
-                      {item.content}
-                    </Text>
+                    {item.message_type === "text" && (
+                      <Text
+                        style={[
+                          styles.messageText,
+                          {
+                            color: item.sender_id === AsUser ? "#fff" : "#333",
+                          },
+                        ]}
+                      >
+                        {item.content}
+                      </Text>
+                    )}
+
+                    {item.message_type === "image" && (
+                      <Lightbox
+                        underlayColor="white"
+                        renderContent={() => (
+                          <Image
+                            source={{ uri: item.media_url }}
+                            style={styles.lightboximageStyle}
+                          />
+                        )}
+                      >
+                        <Image
+                          source={{ uri: item.media_url }}
+                          style={styles.imageStyle}
+                        />
+                      </Lightbox>
+                    )}
+
+                    {item.message_type === "video" && (
+                      <Lightbox
+                        underlayColor="white"
+                        renderContent={() => (
+                          <Video
+                            source={{ uri: item.media_url }}
+                            style={styles.lightboximageStyle}
+                            resizeMode="contain"
+                            useNativeControls
+                            autoplay={true}
+                          />
+                        )}
+                      >
+                        <Video
+                          useNativeControls={false}
+                          style={styles.videoPlayer}
+                          source={{ uri: item.media_url }}
+                          resizeMode="contain"
+                        />
+                      </Lightbox>
+                    )}
                   </View>
                   {item.sender_id != AsUser ? (
                     <>
@@ -278,18 +381,19 @@ const ChatDashboard = ({ route, navigation }) => {
           )}
         </View>
         <View style={styles.inputContainer}>
-          <TouchableOpacity style={styles.iconButton}>
+          {/*<TouchableOpacity style={styles.iconButton}>
             <Icon name="ios-happy" size={24} color="#555" />
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
           <TouchableOpacity style={styles.iconButton} onPress={pickImage}>
             <MaterialIcons name="attach-file" size={24} color="#555" />
           </TouchableOpacity>
           <TextInput
             style={styles.input}
-            placeholder="Type your message..."
+            placeholder="Message..."
             value={messageText}
             onChangeText={(text) => setMessageText(text)}
             editable={!isLoading}
+            underlineColorAndroid="transparent"
           />
           <TouchableOpacity
             style={styles.sendButton}
@@ -324,7 +428,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 15,
-    paddingTop: Platform.OS == "ios" ? 40 : 20,
+    paddingTop: Platform.OS == "ios" ? 55 : 30,
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#efefef",
@@ -338,10 +442,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
   },
-
+  backButton: {
+    marginLeft: 10,
+  },
   backIcon: {
     width: 24,
     height: 24,
+    marginRight:10
   },
   userImage: {
     width: 45,
@@ -376,6 +483,10 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   userStatus: {
+    fontSize: 12,
+    color: "#777",
+  },
+  chatType:{
     fontSize: 14,
     color: "#777",
   },
@@ -397,7 +508,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: 14,
     backgroundColor: "#fff",
   },
   input: {
@@ -407,7 +518,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 16,
     marginRight: 10,
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
   sendButton: {
     backgroundColor: "#00c0ff",
@@ -426,6 +537,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  imageStyle: {
+    width: 200,
+    height: 150,
+    objectFit: "contain",
+  },
+  lightboximageStyle: {
+    height: "100%",
+    width: "100%",
+  },
+  videoPlayer: {
+    width: 200,
+    height: 150,
   },
 });
 

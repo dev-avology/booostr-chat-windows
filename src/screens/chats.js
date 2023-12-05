@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
+//import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import BottomNavBar from "../navigation/BottomNavBar";
@@ -20,6 +20,8 @@ import { fetchConversationsList } from "../reducers/conversationSlice";
 import GroupImg from "../assets/group_icons.png";
 import userPlaceholder from "../assets/user1.png";
 import profileManager from "../assets/pm.png";
+import { setTabIndex } from "../reducers/tabsSlice"
+import { searchArray } from "../searchUtils";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -29,6 +31,12 @@ const UsersListScreen = ({
   renderStatusIndicator,
   userID,
 }) => {
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+    //dispatch(setTabIndex("Direct Chat")); 
+  }, [dispatch]);
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -92,6 +100,13 @@ const GroupsListScreen = ({ chatGroups, handleUserClick, userID }) => {
   const goToGroupss = () => {
     navigation.navigate("GroupChatDashboard");
   };
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+    //dispatch(setTabIndex("Group Chat")); 
+  }, [dispatch]);
+
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -132,15 +147,34 @@ const ChatUserLists = ({ route, navigation }) => {
   const Conversations = useSelector(memoizedConversations);
   const loading = useSelector((state) => state.conversations.loading);
   const error = useSelector((state) => state.conversations.error);
+  const activeTabIndex = useSelector((state) => state.tabs.tabIndex);
 
   const [chatUsers, setChatUsers] = useState([]);
   const [toggleState, setToggleState] = useState(true);
   const [AsUser, setAsUser] = useState(userData?.user_id);
   const [chatGroups, setChatGroups] = useState([]);
   const dispatch = useDispatch();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchTermChange = (newSearchTerm) => {
+    setSearchTerm(newSearchTerm);
+  };
+
+  const filteredchatUsers = searchArray(chatUsers, searchTerm, (item) => {
+    const match = item.participants.some((participant) => {
+      const fullName = `${participant.first_name} ${participant.last_name}`;
+      return fullName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+    return match;
+  });
+
+  const filteredchatGroups = searchArray(chatGroups, searchTerm, (item) => {
+    return item.conversation_name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   useFocusEffect(
     React.useCallback(() => {
+      dispatch(setTabIndex("Direct Chat"));
       const fetchData = async () => {
         try {
           if (toggleState) {
@@ -155,7 +189,6 @@ const ChatUserLists = ({ route, navigation }) => {
           console.error("Error fetching data:", error);
         }
       };
-
       fetchData();
     }, [toggleState])
   );
@@ -170,7 +203,7 @@ const ChatUserLists = ({ route, navigation }) => {
       case "online":
         return "#0F0";
       case "offline":
-        return "#F00";
+        return "#777";
       case "away":
         return "gray";
       default:
@@ -188,7 +221,7 @@ const ChatUserLists = ({ route, navigation }) => {
   );
 
   const handleUserClick = (conversation, AsUser) => {
-    navigation.navigate("ChatDashboard", { conversation, AsUser, toggleState });
+    navigation.navigate("ChatDashboard", { conversation, AsUser, toggleState, club });
   };
 
   const toggleShuffle = () => {
@@ -201,6 +234,9 @@ const ChatUserLists = ({ route, navigation }) => {
     return toggleState ? "As Club" : "As User";
   };
 
+  const maxCharLimit = 70;
+  const title = toggleState  ? userData?.first_name + " " + userData?.last_name : (club?.post_title || '');
+
   return (
     <>
       <View style={styles.header}>
@@ -208,26 +244,30 @@ const ChatUserLists = ({ route, navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <AntDesign name="arrowleft" size={24} color="#000" />
+          {/*<AntDesign name="arrowleft" size={24} color="#000" />*/}
         </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.headerText}>
             Hello{" "}
-            {toggleState
-              ? userData?.first_name + " " + userData?.last_name
-              : club?.post_title}
+            {title.length > maxCharLimit ? title.substring(0, maxCharLimit) + '...': title}
           </Text>
         </View>
+
+
+        { club?.role === 'manager' ? (  
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.toggleButton} onPress={toggleShuffle}>
-            <FontAwesome
+          <Text style={styles.toggleText}>{"As User"}</Text>
+            {/*<FontAwesome
               name={!toggleState ? "toggle-on" : "toggle-off"}
-              size={32}
+              size={18}
               color="#000"
-            />
-            <Text style={styles.toggleText}>{renderToggleText()}</Text>
+        />*/}
+            <Text style={styles.toggleText}>{"As Club"}</Text>
           </TouchableOpacity>
         </View>
+        ):null}
+
       </View>
       {loading ? (
         <View style={styles.containerLoader}>
@@ -235,6 +275,7 @@ const ChatUserLists = ({ route, navigation }) => {
         </View>
       ) : (
         <Tab.Navigator
+          initialRouteName={`${activeTabIndex}`}
           screenOptions={{
             tabBarLabelStyle: { fontSize: 15, fontWeight: 600 },
             tabBarStyle: {},
@@ -242,9 +283,9 @@ const ChatUserLists = ({ route, navigation }) => {
         >
           <Tab.Screen name="Direct Chat" options={{ title: "Direct Chat" }}>
             {() =>
-              chatUsers?.length > 0 ? (
+              filteredchatUsers?.length > 0 ? (
                 <UsersListScreen
-                  chatUsers={chatUsers}
+                  chatUsers={filteredchatUsers}
                   handleUserClick={handleUserClick}
                   renderStatusIndicator={renderStatusIndicator}
                   userID={AsUser}
@@ -256,9 +297,9 @@ const ChatUserLists = ({ route, navigation }) => {
           </Tab.Screen>
           <Tab.Screen name="Group Chat" options={{ title: "Groups Chat" }}>
             {() =>
-              chatGroups?.length > 0 ? (
+              filteredchatGroups?.length > 0 ? (
                 <GroupsListScreen
-                  chatGroups={chatGroups}
+                  chatGroups={filteredchatGroups}
                   handleUserClick={handleUserClick}
                   userID={AsUser}
                 />
@@ -269,7 +310,7 @@ const ChatUserLists = ({ route, navigation }) => {
           </Tab.Screen>
         </Tab.Navigator>
       )}
-      <BottomNavBar toggleState={toggleState} club={club} AsUser={AsUser} />
+      <BottomNavBar toggleState={toggleState} club={club} AsUser={AsUser} onSearchTermChange={handleSearchTermChange}/>
     </>
   );
 };
@@ -283,7 +324,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 20,
     padding: 20,
-    backgroundColor: "#fff",
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -296,6 +336,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#efefef",
+    backgroundColor:"#fdfdfd"
   },
   img_top: {
     height: "100%",
@@ -386,7 +427,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 15,
-    paddingTop: Platform.OS == "ios" ? 35 : 20,
+    paddingTop: Platform.OS == "ios" ? 55 : 30,
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#efefef",

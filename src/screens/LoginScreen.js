@@ -44,7 +44,6 @@ const LoginScreen = ({ navigation }) => {
       username: email,
       password: password,
     };
-    console.log(user);
     dispatch(login(user))
       .then((response) => {
         if (response.status == "success") {
@@ -80,7 +79,7 @@ const LoginScreen = ({ navigation }) => {
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="Email or Username"
               onChangeText={(text) => setEmail(text)}
               value={email}
             />
@@ -93,7 +92,7 @@ const LoginScreen = ({ navigation }) => {
             />
             {loading ? (
               <View style={styles.loader}>
-                <ActivityIndicator color="#00c0ff" />
+                <ActivityIndicator size="medium" color="#00c0ff" />
               </View>
             ) : (
               <PaperButton
@@ -139,9 +138,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    width:500,
+    marginHorizontal:'auto',
   },
   img_top: {
     height: "100%",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   logo: {
     width: 130,

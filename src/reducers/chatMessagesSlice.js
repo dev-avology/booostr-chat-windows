@@ -93,4 +93,49 @@ export const sendMessage = (payload) => async () => {
   }
 };
 
+export const sendFileMessage = (payload, result, recipientIds) => async () => {
+  try {
+    const formData = new FormData();
+    const parts = result?.assets[0]?.uri.split('/');
+  const fileName = parts[parts.length - 1];
+    formData.append('file', {
+      uri: result?.assets[0]?.uri,
+      type: 'image/png',
+      name: fileName,
+    });
+    // Append the payload as form data
+    for (const key in payload) {
+      formData.append(key, payload[key]);
+    }
+
+    recipientIds.forEach((recipientId) => {
+      formData.append('recipient_ids[]', recipientId);
+    });
+
+    const response = await axios.post(
+      `${CHAT_API_URL}/chat_send_file_message`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      console.error('Response data:', error.response.data);
+      console.error('Status code:', error.response.status);
+      console.error('Headers:', error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Request:', error.request);
+    } else {
+      // Something happened in setting up the request that triggered an error
+      console.error('Error message:', error.message);
+    }
+    console.error('Config:', error.config);
+  }
+};
+
 export default chatMessagesSlice.reducer;

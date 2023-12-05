@@ -8,6 +8,7 @@ import conversationsReducer from '../reducers/conversationSlice';
 import chatMessagesReducer from '../reducers/chatMessagesSlice';
 import contactListReducer from '../reducers/contactListSlice';
 import groupListReducer from '../reducers/groupListSlice';
+import tabsReducer from '../reducers/tabsSlice';
 
 const rootReducer = combineReducers({
   auth: loginReducer,
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
   userMessages: chatMessagesReducer,
   contactList: contactListReducer,
   groupList: groupListReducer,
+  tabs: tabsReducer,
 });
 
 const store = configureStore({

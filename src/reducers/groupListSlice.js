@@ -61,4 +61,13 @@ export const createGroupConversation = (payload) => async () => {
   }
 };
 
+export const hideGroupConversation = (payload) => async () => {
+  try {
+    const response = await axios.post(`${CHAT_API_URL}/chat_hide_group_conversation`, payload);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export default groupSlice.reducer;

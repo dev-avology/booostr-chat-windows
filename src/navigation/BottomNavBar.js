@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
   StatusBar,
   Dimensions,
 } from "react-native";
-import { AntDesign, FontAwesome, MaterialIcons } from "@expo/vector-icons";
+//import { AntDesign, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import {
   useNavigation,
   useIsFocused,
@@ -17,11 +17,12 @@ import {
 } from "@react-navigation/native";
 import * as Animatable from "react-native-animatable";
 
-const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
+const BottomNavBar = ({ onSearch, toggleState, club, AsUser, onSearchTermChange }) => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [activeItem, setActiveItem] = useState("Home");
+
+  const searchInputRef = useRef(null);
 
   const isFocused = useIsFocused();
   const route = useRoute(); // Get the current route
@@ -29,13 +30,12 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
   const navigation = useNavigation();
 
   const toggleSearchBar = () => {
-    setIsSearchBarVisible(!isSearchBarVisible);
-    setIsOverlayVisible(false);
-  };
-
-  const handleSearch = () => {
-    onSearch(searchText);
-    setSearchText("");
+    if(onSearchTermChange){
+      setIsSearchBarVisible(!isSearchBarVisible);
+      setIsOverlayVisible(false);
+    }else{
+      alert('Please goto club list or chat list');
+    }
   };
 
   useEffect(() => {
@@ -102,11 +102,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
           ]}
           onPress={handleClub}
         >
-          <FontAwesome
+          {/*<FontAwesome
             name="comment"
             size={24}
             color={activeItem === "ClubList" ? "#00c0ff" : "#000"}
-          />
+        />*/}
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -114,12 +114,12 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
             activeItem === "Search" && styles.activeNavItem,
           ]}
         >
-          <FontAwesome
+          {/*<FontAwesome
             name="search"
             size={24}
             color={activeItem === "Search" ? "#00c0ff" : "#000"}
             onPress={toggleSearchBar}
-          />
+        />*/}
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -135,11 +135,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
             }
           }}
         >
-          <AntDesign
+          {/*<AntDesign
             name="plus"
             size={24}
             color={activeItem === "AddContact" ? "#00c0ff" : "#fff"}
-          />
+        />*/}
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -148,11 +148,11 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
           ]}
           onPress={handleSetting}
         >
-          <MaterialIcons
+          {/*<MaterialIcons
             name="settings"
             size={24}
             color={activeItem === "SettingsPage" ? "#00c0ff" : "#000"}
-          />
+        />*/}
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -161,28 +161,39 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
           ]}
           onPress={handleProfile}
         >
-          <FontAwesome
+          {/*<FontAwesome
             name="user"
             size={24}
             color={activeItem === "UserProfile" ? "#00c0ff" : "#000"}
-          />
+        />*/}
         </TouchableOpacity>
       </View>
       {isSearchBarVisible && (
         <View style={styles.searchBarContainer}>
           <TextInput
+            ref={searchInputRef}
             style={styles.searchInput}
             placeholder="Search"
-            value={searchText}
-            onChangeText={(text) => setSearchText(text)}
-            onSubmitEditing={handleSearch}
+            //onChangeText={(text) => onSearchTermChange(text)}
+            //onSubmitEditing={(e) => onSearchTermChange(e.nativeEvent.text)}
+            onChangeText={(e) => {
+              searchInputRef.current.value = e;
+              onSearchTermChange(e);
+            }}
+            onSubmitEditing={() => {
+              const searchTerm = searchInputRef.current.value;
+              onSearchTermChange(searchTerm);
+            }}
           />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <FontAwesome
+          <TouchableOpacity style={styles.searchButton} onPress={() => {
+            const searchTerm = searchInputRef.current.value;
+            onSearchTermChange(searchTerm);
+          }}>
+            {/*<FontAwesome
               name="search"
               size={20}
               color={activeItem === "Search" ? "#00c0ff" : "#000"}
-            />
+        />*/}
           </TouchableOpacity>
         </View>
       )}
@@ -198,7 +209,7 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
           duration={500}
           easing="ease-in-out"
         >
-          <Text style={styles.headingTexts}>Add User or Club</Text>
+          <Text style={styles.headingTexts}>{toggleState ? "Add User" : "Add User or Group"}</Text>
           <TouchableOpacity
             style={styles.overlayButton}
             onPress={handleAddContact}
@@ -210,7 +221,7 @@ const BottomNavBar = ({ onSearch, toggleState, club, AsUser }) => {
               style={styles.overlayButton}
               onPress={handleCreateGroup}
             >
-              <Text style={styles.buttonTexts}>Create Group</Text>
+              <Text style={styles.buttonTexts}>Add Group</Text>
             </TouchableOpacity>
           )}
         </Animatable.View>
@@ -270,13 +281,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   iconButton: {
-    padding: 8,
+    width: 50,
+    height: 50,
+    borderRadius:8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activeNavItem: {
+    backgroundColor:"#efefef"
   },
   middleButton: {
-    width: 80,
+    width: 50,
     height: 50,
     backgroundColor: "#00c0ff",
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },

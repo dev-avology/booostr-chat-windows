@@ -53,7 +53,7 @@ const AllUserListScreen = ({ route, navigation }) => {
       case "online":
         return "#0F0";
       case "offline":
-        return "#F00";
+        return "#777";
       case "away":
         return "gray";
       default:
@@ -214,11 +214,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: Platform.OS == "ios" ? 40 : 20,
+    paddingTop: Platform.OS == "ios" ? 55 : 30,
     paddingBottom: 25,
     borderBottomWidth: 1,
     borderBottomColor: "#efefef",
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   headerText: {
     color: "#000",

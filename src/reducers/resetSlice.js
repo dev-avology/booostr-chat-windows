@@ -1,13 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = false; // Define initial state separately
+const initialState = false;
 
 const resetSlice = createSlice({
   name: "reset",
-  initialState, // Use the initial state variable here
+  initialState,
   reducers: {
     resetAllStates: (state) => {
-      return true;
+      return true
     },
   },
 });

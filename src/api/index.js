@@ -3,12 +3,10 @@ import axios from "axios";
 import { CHAT_API_URL } from "../config";
 const logIn = async (user) => {
   try {
-    console.log(`${CHAT_API_URL}/login`);
     const response = await axios.post(`${CHAT_API_URL}/login`, {
       username: user.username,
       password: user.password,
     });
-    
     if (response && response.data) {
       const userdata = response.data;
       if (userdata && userdata !== null && userdata?.user_id) {
@@ -22,26 +20,31 @@ const logIn = async (user) => {
           userdata: JSON.stringify(userdata),
         };
       } else {
-        //console.error("API Error:" + response.data);
-        alert(response.data.error);
+        alert("Login failed. Please try again later.");
       }
     } else {
       //console.error("API Error: Response or response.data is undefined");
       alert("Login failed. Please try again later.");
     }
   } catch (error) {
-    errormsg = error.response ? error.response.data.message : error.message;
-    alert(error);
+      alert("Login failed. Please try again later.");
   } finally {
   }
 };
 
-const logOut = async () => {
-  AsyncStorage.clear();
-  return {
-    status: "success",
-    message: "You are logged out",
-  };
+const logOut = async (CurrentUserID) => {
+  try {
+    const response = await axios.post(`${CHAT_API_URL}/logout`, {
+      user_id: CurrentUserID,
+    });
+    AsyncStorage.clear();
+    return {
+      status: "success",
+      message: "You are logged out",
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 
 const getUserDataById = async (userId) => {
